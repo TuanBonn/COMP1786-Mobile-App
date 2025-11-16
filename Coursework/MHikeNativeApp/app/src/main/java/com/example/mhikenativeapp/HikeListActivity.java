@@ -3,6 +3,8 @@ package com.example.mhikenativeapp; // Thay bằng package của bạn
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+// THÊM IMPORT NÀY
+import androidx.appcompat.widget.SearchView;
 
 import android.app.AlertDialog;
 import android.content.DialogInterface;
@@ -18,13 +20,20 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.util.ArrayList;
 
-public class HikeListActivity extends AppCompatActivity implements HikeAdapter.OnHikeActionListener {
+/**
+ * Màn hình danh sách.
+ * ĐÃ NÂNG CẤP: Implement SearchView.OnQueryTextListener (Tính năng d).
+ */
+public class HikeListActivity extends AppCompatActivity
+        implements HikeAdapter.OnHikeActionListener, SearchView.OnQueryTextListener { // <-- THÊM INTERFACE NÀY
 
+    // Khai báo Views
     private RecyclerView rvHikes;
     private FloatingActionButton fabAddHike;
-    private DatabaseHelper dbHelper;
+    private SearchView searchView; // <-- TÍNH NĂNG MỚI
 
-    // Khai báo 2 biến này ở cấp class
+    // Khai báo Data helpers
+    private DatabaseHelper dbHelper;
     private ArrayList<Hike> hikeList;
     private HikeAdapter hikeAdapter;
 
@@ -34,12 +43,15 @@ public class HikeListActivity extends AppCompatActivity implements HikeAdapter.O
         setContentView(R.layout.activity_hike_list);
 
         dbHelper = new DatabaseHelper(this);
+
+        // Ánh xạ Views từ XML
         rvHikes = findViewById(R.id.rvHikes);
         fabAddHike = findViewById(R.id.fabAddHike);
+        searchView = findViewById(R.id.searchView); // <-- TÍNH NĂNG MỚI
 
-        // Cài đặt RecyclerView MỘT LẦN
         setupRecyclerView();
 
+        // Cài đặt nút "+"
         fabAddHike.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -47,42 +59,50 @@ public class HikeListActivity extends AppCompatActivity implements HikeAdapter.O
                 startActivity(intent);
             }
         });
+
+        // CÀI ĐẶT SEARCHVIEW
+        searchView.setOnQueryTextListener(this); // Gán "listener" là Activity này
     }
 
     private void setupRecyclerView() {
-        // KHỞI TẠO DANH SÁCH VÀ ADAPTER Ở ĐÂY
-        hikeList = new ArrayList<>(); // 1. Tạo 1 danh sách MỚI (List A)
-        hikeAdapter = new HikeAdapter(hikeList, this); // 2. "Giao" List A cho Adapter
-
+        hikeList = new ArrayList<>();
+        hikeAdapter = new HikeAdapter(hikeList, this);
         rvHikes.setLayoutManager(new LinearLayoutManager(this));
-        rvHikes.setAdapter(hikeAdapter); // 3. Set Adapter (đang dùng List A)
+        rvHikes.setAdapter(hikeAdapter);
     }
 
     /**
-     * Hàm này chỉ xóa List A và "bơm" dữ liệu mới vào nó.
-     * Nó KHÔNG tạo ra list hay adapter mới.
+     * Tải lại TOÀN BỘ Hikes (khi không tìm kiếm).
      */
-    private void loadHikes() {
-        hikeList.clear(); // 1. Xóa sạch List A
-        hikeList.addAll(dbHelper.getAllHikes()); // 2. Bơm dữ liệu mới từ DB vào List A
-        hikeAdapter.notifyDataSetChanged(); // 3. Báo Adapter (vẫn đang dùng List A) "Vẽ lại đi!"
+    private void loadAllHikes() {
+        hikeList.clear();
+        hikeList.addAll(dbHelper.getAllHikes());
+        hikeAdapter.notifyDataSetChanged();
     }
 
     /**
-     * Hàm này được gọi MỖI KHI bạn quay lại màn hình này.
-     * Đây là chìa khóa để làm mới danh sách.
+     * Tải Hikes DỰA TRÊN TÌM KIẾM.
+     * @param query Chuỗi tìm kiếm
      */
+    private void searchHikes(String query) {
+        hikeList.clear();
+        hikeList.addAll(dbHelper.searchHikes(query)); // Gọi hàm searchHikes mới
+        hikeAdapter.notifyDataSetChanged();
+    }
+
     @Override
     protected void onResume() {
         super.onResume();
-        loadHikes(); // Tải lại danh sách
+        loadAllHikes(); // Tải lại toàn bộ danh sách khi quay lại
     }
 
-    // --- Các hàm onEditClick và onDeleteClick (giữ nguyên) ---
+    // --- Xử lý sự kiện từ Adapter (giữ nguyên) ---
+
     @Override
     public void onEditClick(Hike hike) {
-        Toast.makeText(this, "Editing: " + hike.getName(), Toast.LENGTH_SHORT).show();
-        // (Sẽ làm màn hình Edit sau)
+        Intent intent = new Intent(HikeListActivity.this, EditHikeActivity.class);
+        intent.putExtra("HIKE_ID", hike.getId());
+        startActivity(intent);
     }
 
     @Override
@@ -94,12 +114,43 @@ public class HikeListActivity extends AppCompatActivity implements HikeAdapter.O
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         dbHelper.deleteHike(hike.getId());
-                        loadHikes(); // Tải lại danh sách ngay sau khi xóa
+                        loadAllHikes(); // Tải lại toàn bộ danh sách
                         Toast.makeText(HikeListActivity.this, "Hike deleted", Toast.LENGTH_SHORT).show();
                     }
                 })
                 .setNegativeButton("Cancel", null)
                 .setIcon(android.R.drawable.ic_dialog_alert)
                 .show();
+    }
+
+    @Override
+    public void onHikeClick(Hike hike) {
+        Intent intent = new Intent(HikeListActivity.this, HikeDetailActivity.class);
+        intent.putExtra("HIKE_ID", hike.getId());
+        startActivity(intent);
+    }
+
+    // --- 2 HÀM BẮT BUỘC MỚI cho OnQueryTextListener ---
+
+    /**
+     * Được gọi khi người dùng nhấn "Enter" (Submit) trên bàn phím.
+     */
+    @Override
+    public boolean onQueryTextSubmit(String query) {
+        searchHikes(query); // Thực hiện tìm kiếm
+        return true;
+    }
+
+    /**
+     * Được gọi MỖI KHI người dùng gõ 1 chữ.
+     */
+    @Override
+    public boolean onQueryTextChange(String newText) {
+        if (newText.isEmpty()) {
+            loadAllHikes(); // Nếu thanh search rỗng, tải lại toàn bộ
+        } else {
+            searchHikes(newText); // Thực hiện tìm kiếm "live"
+        }
+        return true;
     }
 }

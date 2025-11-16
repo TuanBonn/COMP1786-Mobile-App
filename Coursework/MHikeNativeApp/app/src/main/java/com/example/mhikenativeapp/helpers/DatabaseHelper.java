@@ -137,6 +137,102 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return hikeList; // Trả về danh sách ĐẦY ĐỦ
     }
 
+    public ArrayList<Hike> searchHikes(String query) {
+        ArrayList<Hike> hikeList = new ArrayList<>();
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = null;
+
+        // Dùng query() an toàn với mệnh đề LIKE [cite: 1888]
+        String selection = COLUMN_HIKE_NAME + " LIKE ?"; // Tìm cột 'name' GIỐNG VỚI ?
+        String[] selectionArgs = new String[]{"%" + query + "%"}; // %query% = "chứa" query
+
+        try {
+            cursor = db.query(
+                    TABLE_HIKES,
+                    null, // columns (null = all)
+                    selection, // selection (WHERE clause)
+                    selectionArgs, // selectionArgs (thay thế ?)
+                    null, // groupBy
+                    null, // having
+                    COLUMN_HIKE_NAME + " ASC"  // orderBy
+            );
+
+            if (cursor.moveToFirst()) {
+                do {
+                    Hike hike = new Hike();
+                    hike.setId(cursor.getLong(cursor.getColumnIndexOrThrow(COLUMN_HIKE_ID)));
+                    hike.setName(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_HIKE_NAME)));
+                    hike.setLocation(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_HIKE_LOCATION)));
+                    hike.setDate(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_HIKE_DATE)));
+                    hike.setParkingAvailable(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_HIKE_PARKING)));
+                    hike.setLength(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_HIKE_LENGTH)));
+                    hike.setDifficulty(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_HIKE_DIFFICULTY)));
+                    hike.setDescription(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_HIKE_DESCRIPTION)));
+                    hike.setWeather(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_HIKE_WEATHER)));
+                    hike.setTrailCondition(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_HIKE_TRAIL_CONDITION)));
+
+                    hikeList.add(hike);
+                } while (cursor.moveToNext());
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            if (cursor != null) {
+                cursor.close();
+            }
+            db.close();
+        }
+        return hikeList;
+    }
+
+    /**
+     * Lấy MỘT (1) Hike từ database bằng ID của nó.
+     * Cần thiết cho màn hình EditHikeActivity.
+     */
+    public Hike getHikeById(long id) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        Hike hike = null;
+        Cursor cursor = null; // Khai báo ở đây để đóng trong finally
+
+        try {
+            // Dùng query() an toàn
+            cursor = db.query(
+                    TABLE_HIKES,
+                    null, // columns (null = all)
+                    COLUMN_HIKE_ID + " = ?", // selection (WHERE clause)
+                    new String[]{String.valueOf(id)}, // selectionArgs (thay thế ?)
+                    null, // groupBy
+                    null, // having
+                    null  // orderBy
+            );
+
+            if (cursor != null && cursor.moveToFirst()) {
+                // Khởi tạo đối tượng Hike
+                hike = new Hike();
+                hike.setId(cursor.getLong(cursor.getColumnIndexOrThrow(COLUMN_HIKE_ID)));
+                hike.setName(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_HIKE_NAME)));
+                hike.setLocation(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_HIKE_LOCATION)));
+                hike.setDate(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_HIKE_DATE)));
+                hike.setParkingAvailable(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_HIKE_PARKING)));
+                hike.setLength(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_HIKE_LENGTH)));
+                hike.setDifficulty(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_HIKE_DIFFICULTY)));
+                hike.setDescription(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_HIKE_DESCRIPTION)));
+                hike.setWeather(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_HIKE_WEATHER)));
+                hike.setTrailCondition(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_HIKE_TRAIL_CONDITION)));
+            }
+        } catch (Exception e) {
+            // Xử lý lỗi (ví dụ: log lỗi)
+            e.printStackTrace();
+        } finally {
+            if (cursor != null) {
+                cursor.close();
+            }
+            db.close();
+        }
+
+        return hike; // Trả về 1 Hike (hoặc null nếu không tìm thấy)
+    }
+
     public int updateHike(Hike hike) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();

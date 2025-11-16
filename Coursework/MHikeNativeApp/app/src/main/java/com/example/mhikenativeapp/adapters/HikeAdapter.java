@@ -38,6 +38,14 @@ public class HikeAdapter extends RecyclerView.Adapter<HikeAdapter.HikeViewHolder
             tvHikeDate = itemView.findViewById(R.id.tvHikeDate);
             btnEdit = itemView.findViewById(R.id.btnEdit);
             btnDelete = itemView.findViewById(R.id.btnDelete);
+
+            itemView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    // Cần lấy vị trí (position)
+                    // Sẽ làm ở onBindViewHolder
+                }
+            });
         }
     }
 
@@ -48,6 +56,7 @@ public class HikeAdapter extends RecyclerView.Adapter<HikeAdapter.HikeViewHolder
     public interface OnHikeActionListener {
         void onEditClick(Hike hike);
         void onDeleteClick(Hike hike);
+        void onHikeClick(Hike hike);
     }
 
     // Constructor của Adapter, nhận vào danh sách và "listener"
@@ -65,6 +74,7 @@ public class HikeAdapter extends RecyclerView.Adapter<HikeAdapter.HikeViewHolder
     public HikeViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_hike, parent, false);
         return new HikeViewHolder(v);
+
     }
 
     /**
@@ -96,6 +106,15 @@ public class HikeAdapter extends RecyclerView.Adapter<HikeAdapter.HikeViewHolder
             public void onClick(View v) {
                 if (listener != null) {
                     listener.onDeleteClick(currentHike); // Gửi hike này về Activity
+                }
+            }
+        });
+
+        holder.itemView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (listener != null) {
+                    listener.onHikeClick(currentHike); // <-- GỌI LISTENER MỚI
                 }
             }
         });
