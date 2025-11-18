@@ -12,20 +12,28 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.MHikeNativeApp">
         <activity
-            android:name=".AddObservationActivity"
+            android:name=".EditObservationActivity"
             android:exported="false" />
         <activity
+            android:name=".AddObservationActivity"
+            android:exported="false"
+            android:parentActivityName=".HikeDetailActivity" />
+        <activity
             android:name=".HikeDetailActivity"
-            android:exported="false" />
+            android:exported="false"
+            android:parentActivityName=".MainActivity" />
         <activity
             android:name=".EditHikeActivity"
             android:exported="false" />
         <activity
-            android:name=".HikeListActivity"
-            android:exported="false" />
+            android:name=".AddHikeActivity"
+            android:exported="false"
+            android:label="Add New Hike"
+            android:parentActivityName=".MainActivity" />
         <activity
             android:name=".MainActivity"
-            android:exported="true">
+            android:exported="true"
+            android:label="M-Hike List">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

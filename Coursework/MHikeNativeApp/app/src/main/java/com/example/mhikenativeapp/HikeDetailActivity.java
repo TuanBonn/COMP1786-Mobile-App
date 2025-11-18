@@ -9,6 +9,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -29,7 +30,7 @@ public class HikeDetailActivity extends AppCompatActivity implements Observation
 
 
     private RecyclerView rvObservations;
-    private FloatingActionButton fabAddObservation;
+    private Button fabAddObservation;
 
 
     private DatabaseHelper dbHelper;
@@ -144,13 +145,6 @@ public class HikeDetailActivity extends AppCompatActivity implements Observation
 
 
     @Override
-    public void onEditObsClick(Observation observation) {
-
-        Toast.makeText(this, "Editing observation: " + observation.getObservation(), Toast.LENGTH_SHORT).show();
-
-    }
-
-    @Override
     public void onDeleteObsClick(Observation observation) {
 
         new AlertDialog.Builder(this)
@@ -167,5 +161,16 @@ public class HikeDetailActivity extends AppCompatActivity implements Observation
                 .setNegativeButton("Cancel", null)
                 .setIcon(android.R.drawable.ic_dialog_alert)
                 .show();
+    }
+
+    @Override
+    public void onEditObsClick(Observation observation) {
+        // Mở màn hình EditObservationActivity
+        Intent intent = new Intent(HikeDetailActivity.this, EditObservationActivity.class);
+
+        // Gửi ID của quan sát cần sửa
+        intent.putExtra("OBS_ID", observation.getId());
+
+        startActivity(intent);
     }
 }

@@ -1,37 +1,40 @@
 package com.example.mhikenativeapp;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
-import android.app.DatePickerDialog;
+import androidx.appcompat.widget.SearchView;
+
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.DatePicker;
-import android.widget.RadioButton;
-import android.widget.RadioGroup;
-import android.widget.Spinner;
 import android.widget.Toast;
+import android.widget.Button;
 
+import com.example.mhikenativeapp.adapters.HikeAdapter;
 import com.example.mhikenativeapp.helpers.DatabaseHelper;
 import com.example.mhikenativeapp.models.Hike;
-import com.google.android.material.textfield.TextInputEditText;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
-import java.util.Calendar;
-
-public class MainActivity extends AppCompatActivity {
+import java.util.ArrayList;
 
 
-    private TextInputEditText etHikeName, etHikeLocation, etHikeDate, etHikeLength, etHikeDescription, etWeather, etTrailCondition;
-    private RadioGroup rgParking;
-    private Spinner spinnerDifficulty;
+public class MainActivity extends AppCompatActivity
+        implements HikeAdapter.OnHikeActionListener, SearchView.OnQueryTextListener {
 
 
-    private Button btnSaveHike;
-    private Button btnViewAllHikes;
+    private RecyclerView rvHikes;
+    private Button fabAddHike;
+    private SearchView searchView;
+
 
     private DatabaseHelper dbHelper;
+    private ArrayList<Hike> hikeList;
+    private HikeAdapter hikeAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,167 +42,100 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         dbHelper = new DatabaseHelper(this);
-        setupUI();
-        setupSpinner();
-        setupClickListeners();
-    }
-
-    private void setupUI() {
-
-        etHikeName = findViewById(R.id.etHikeName);
-        etHikeLocation = findViewById(R.id.etHikeLocation);
-        etHikeDate = findViewById(R.id.etHikeDate);
-        etHikeLength = findViewById(R.id.etHikeLength);
-        etHikeDescription = findViewById(R.id.etHikeDescription);
 
 
-        etWeather = findViewById(R.id.etWeather);
-        etTrailCondition = findViewById(R.id.etTrailCondition);
+        rvHikes = findViewById(R.id.rvHikes);
+        fabAddHike = findViewById(R.id.fabAddHike);
+        searchView = findViewById(R.id.searchView);
+
+        setupRecyclerView();
 
 
-        rgParking = findViewById(R.id.rgParking);
-        spinnerDifficulty = findViewById(R.id.spinnerDifficulty);
-
-
-        btnSaveHike = findViewById(R.id.btnSaveHike);
-        btnViewAllHikes = findViewById(R.id.btnViewAllHikes);
-    }
-
-    private void setupSpinner() {
-        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(
-                this,
-                R.array.difficulty_levels,
-                android.R.layout.simple_spinner_item
-        );
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        spinnerDifficulty.setAdapter(adapter);
-    }
-
-    private void setupClickListeners() {
-
-        btnSaveHike.setOnClickListener(new View.OnClickListener() {
+        fabAddHike.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                saveHike();
-            }
-        });
-
-
-        btnViewAllHikes.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(MainActivity.this, HikeListActivity.class);
+                Intent intent = new Intent(MainActivity.this, AddHikeActivity.class);
                 startActivity(intent);
             }
         });
 
-
-        etHikeDate.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                showDatePickerDialog();
-            }
-        });
+        searchView.setOnQueryTextListener(this);
     }
 
-    private void showDatePickerDialog() {
-        final Calendar c = Calendar.getInstance();
-        int year = c.get(Calendar.YEAR);
-        int month = c.get(Calendar.MONTH);
-        int day = c.get(Calendar.DAY_OF_MONTH);
+    private void setupRecyclerView() {
+        hikeList = new ArrayList<>();
+        hikeAdapter = new HikeAdapter(hikeList, this);
+        rvHikes.setLayoutManager(new LinearLayoutManager(this));
+        rvHikes.setAdapter(hikeAdapter);
+    }
 
-        DatePickerDialog datePickerDialog = new DatePickerDialog(
-                this,
-                new DatePickerDialog.OnDateSetListener() {
+
+    private void loadAllHikes() {
+        hikeList.clear();
+        hikeList.addAll(dbHelper.getAllHikes());
+        hikeAdapter.notifyDataSetChanged();
+    }
+
+    private void searchHikes(String query) {
+        hikeList.clear();
+        hikeList.addAll(dbHelper.searchHikes(query));
+        hikeAdapter.notifyDataSetChanged();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        loadAllHikes();
+    }
+
+
+
+    @Override
+    public void onEditClick(Hike hike) {
+        Intent intent = new Intent(MainActivity.this, EditHikeActivity.class);
+        intent.putExtra("HIKE_ID", hike.getId());
+        startActivity(intent);
+    }
+
+    @Override
+    public void onDeleteClick(Hike hike) {
+        new AlertDialog.Builder(this)
+                .setTitle("Delete Hike")
+                .setMessage("Are you sure you want to delete '" + hike.getName() + "'?")
+                .setPositiveButton("Delete", new DialogInterface.OnClickListener() {
                     @Override
-                    public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
-                        etHikeDate.setText(dayOfMonth + "/" + (monthOfYear + 1) + "/" + year);
+                    public void onClick(DialogInterface dialog, int which) {
+                        dbHelper.deleteHike(hike.getId());
+                        loadAllHikes();
+                        Toast.makeText(MainActivity.this, "Hike deleted", Toast.LENGTH_SHORT).show();
                     }
-                },
-                year, month, day);
-        datePickerDialog.show();
+                })
+                .setNegativeButton("Cancel", null)
+                .setIcon(android.R.drawable.ic_dialog_alert)
+                .show();
     }
 
-    private String getParkingValue() {
-        int selectedId = rgParking.getCheckedRadioButtonId();
-        if (selectedId == -1) {
-            return "";
-        }
-        RadioButton selectedRadioButton = findViewById(selectedId);
-        return selectedRadioButton.getText().toString();
+    @Override
+    public void onHikeClick(Hike hike) {
+        Intent intent = new Intent(MainActivity.this, HikeDetailActivity.class);
+        intent.putExtra("HIKE_ID", hike.getId());
+        startActivity(intent);
     }
 
-    private boolean validateInput() {
-        if (etHikeName.getText().toString().trim().isEmpty()) {
-            etHikeName.setError("Name is required");
-            return false;
-        }
-        if (etHikeLocation.getText().toString().trim().isEmpty()) {
-            etHikeLocation.setError("Location is required");
-            return false;
-        }
-        if (etHikeDate.getText().toString().trim().isEmpty()) {
-            etHikeDate.setError("Date is required");
-            return false;
-        }
-        if (etHikeLength.getText().toString().trim().isEmpty()) {
-            etHikeLength.setError("Length is required");
-            return false;
-        }
-        if (getParkingValue().isEmpty()) {
-            Toast.makeText(this, "Please select parking availability", Toast.LENGTH_SHORT).show();
-            return false;
-        }
+
+    @Override
+    public boolean onQueryTextSubmit(String query) {
+        searchHikes(query);
         return true;
     }
 
-    private void saveHike() {
-        if (!validateInput()) {
-            Toast.makeText(this, "Please fix the errors", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        String name = etHikeName.getText().toString().trim();
-        String location = etHikeLocation.getText().toString().trim();
-        String date = etHikeDate.getText().toString().trim();
-        String parking = getParkingValue();
-        String length = etHikeLength.getText().toString().trim();
-        String difficulty = spinnerDifficulty.getSelectedItem().toString();
-        String description = etHikeDescription.getText().toString().trim();
-        String weather = etWeather.getText().toString().trim();
-        String trailCondition = etTrailCondition.getText().toString().trim();
-
-        Hike newHike = new Hike();
-        newHike.setName(name);
-        newHike.setLocation(location);
-        newHike.setDate(date);
-        newHike.setParkingAvailable(parking);
-        newHike.setLength(length);
-        newHike.setDifficulty(difficulty);
-        newHike.setDescription(description);
-        newHike.setWeather(weather);
-        newHike.setTrailCondition(trailCondition);
-
-        long id = dbHelper.addHike(newHike);
-
-        if (id != -1) {
-            Toast.makeText(this, "Hike saved successfully! ID: " + id, Toast.LENGTH_LONG).show();
-            clearForm();
+    @Override
+    public boolean onQueryTextChange(String newText) {
+        if (newText.isEmpty()) {
+            loadAllHikes();
         } else {
-            Toast.makeText(this, "Failed to save hike", Toast.LENGTH_SHORT).show();
+            searchHikes(newText);
         }
-    }
-
-    private void clearForm() {
-        etHikeName.setText("");
-        etHikeLocation.setText("");
-        etHikeDate.setText("");
-        etHikeLength.setText("");
-        etHikeDescription.setText("");
-        etWeather.setText("");
-        etTrailCondition.setText("");
-        rgParking.clearCheck();
-        spinnerDifficulty.setSelection(0);
-        etHikeName.requestFocus();
+        return true;
     }
 }

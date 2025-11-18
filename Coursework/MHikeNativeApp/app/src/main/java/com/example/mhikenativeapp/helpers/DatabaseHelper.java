@@ -302,4 +302,49 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 new String[]{String.valueOf(id)});
         db.close();
     }
+
+    public Observation getObservationById(long id) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        Observation obs = null;
+        Cursor cursor = null;
+
+        try {
+            cursor = db.query(TABLE_OBSERVATIONS, null,
+                    COLUMN_OBS_ID + " = ?",
+                    new String[]{String.valueOf(id)},
+                    null, null, null);
+
+            if (cursor != null && cursor.moveToFirst()) {
+                obs = new Observation();
+                obs.setId(cursor.getLong(cursor.getColumnIndexOrThrow(COLUMN_OBS_ID)));
+                obs.setObservation(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_OBS_TEXT)));
+                obs.setTime(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_OBS_TIME)));
+                obs.setComments(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_OBS_COMMENTS)));
+                obs.setHikeId(cursor.getLong(cursor.getColumnIndexOrThrow(COLUMN_OBS_HIKE_ID_FK)));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            if (cursor != null) cursor.close();
+            db.close();
+        }
+        return obs;
+    }
+
+
+    public int updateObservation(Observation observation) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+
+        values.put(COLUMN_OBS_TEXT, observation.getObservation());
+        values.put(COLUMN_OBS_TIME, observation.getTime());
+        values.put(COLUMN_OBS_COMMENTS, observation.getComments());
+
+        int rows = db.update(TABLE_OBSERVATIONS, values,
+                COLUMN_OBS_ID + " = ?",
+                new String[]{String.valueOf(observation.getId())});
+        db.close();
+        return rows;
+    }
+
 }
