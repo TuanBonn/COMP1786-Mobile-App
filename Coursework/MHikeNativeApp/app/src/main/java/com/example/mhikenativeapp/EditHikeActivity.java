@@ -1,4 +1,4 @@
-package com.example.mhikenativeapp; // Thay bằng package của bạn
+package com.example.mhikenativeapp;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -161,7 +161,6 @@ public class EditHikeActivity extends AppCompatActivity {
         }
     }
 
-    // --- CÁC HÀM HELPER (COPY TỪ MAINACTIVITY) ---
 
     private void showDatePickerDialog() {
         final Calendar c = Calendar.getInstance();

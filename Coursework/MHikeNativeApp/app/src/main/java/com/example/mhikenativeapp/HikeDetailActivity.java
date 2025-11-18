@@ -1,4 +1,4 @@
-package com.example.mhikenativeapp; // Thay bằng package của bạn
+package com.example.mhikenativeapp;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -20,28 +20,24 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.util.ArrayList;
 
-/**
- * Màn hình (Activity) Chi tiết Chuyến đi.
- * Hiển thị thông tin Hike và danh sách Observations (Tính năng c).
- * Nó "lắng nghe" các sự kiện click từ ObservationAdapter.
- */
+
 public class HikeDetailActivity extends AppCompatActivity implements ObservationAdapter.OnObservationActionListener {
 
-    // Khai báo Views (Hike Details)
+
     private TextView tvDetailName, tvDetailLocation, tvDetailDate, tvDetailParking;
     private TextView tvDetailLength, tvDetailDifficulty, tvDetailWeather, tvDetailTrailCondition, tvDetailDescription;
 
-    // Khai báo Views (Observations)
+
     private RecyclerView rvObservations;
     private FloatingActionButton fabAddObservation;
 
-    // Khai báo Data helpers
+
     private DatabaseHelper dbHelper;
     private ArrayList<Observation> observationList;
     private ObservationAdapter observationAdapter;
 
-    private long hikeId; // ID của chuyến đi đang xem
-    private Hike currentHike; // Thông tin của chuyến đi đang xem
+    private long hikeId;
+    private Hike currentHike;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,7 +46,7 @@ public class HikeDetailActivity extends AppCompatActivity implements Observation
 
         dbHelper = new DatabaseHelper(this);
 
-        // Lấy ID được gửi từ HikeListActivity
+
         Intent intent = getIntent();
         hikeId = intent.getLongExtra("HIKE_ID", -1);
 
@@ -60,30 +56,25 @@ public class HikeDetailActivity extends AppCompatActivity implements Observation
             return;
         }
 
-        // Ánh xạ (mapping) tất cả các Views
+
         setupUI();
-        // Cài đặt RecyclerView
+
         setupRecyclerView();
-        // Gán sự kiện click
+
         setupClickListeners();
     }
 
-    /**
-     * Tải lại dữ liệu mỗi khi quay lại màn hình này
-     * (ví dụ: quay lại từ màn hình Thêm Observation).
-     */
+
     @Override
     protected void onResume() {
         super.onResume();
-        loadHikeData(); // Tải lại thông tin Hike (phòng trường hợp nó vừa được Edit)
-        loadObservations(); // Tải lại danh sách Observations
+        loadHikeData();
+        loadObservations();
     }
 
-    /**
-     * Ánh xạ các biến Java với các ID trong file XML.
-     */
+
     private void setupUI() {
-        // Ánh xạ các TextView chi tiết
+
         tvDetailName = findViewById(R.id.tvDetailName);
         tvDetailLocation = findViewById(R.id.tvDetailLocation);
         tvDetailDate = findViewById(R.id.tvDetailDate);
@@ -94,35 +85,29 @@ public class HikeDetailActivity extends AppCompatActivity implements Observation
         tvDetailTrailCondition = findViewById(R.id.tvDetailTrailCondition);
         tvDetailDescription = findViewById(R.id.tvDetailDescription);
 
-        // Ánh xạ RecyclerView và FAB
+
         rvObservations = findViewById(R.id.rvObservations);
         fabAddObservation = findViewById(R.id.fabAddObservation);
     }
 
-    /**
-     * Khởi tạo RecyclerView, Adapter, và LayoutManager.
-     */
+
     private void setupRecyclerView() {
         observationList = new ArrayList<>();
-        // Khởi tạo Adapter, truyền "this" làm "listener"
+
         observationAdapter = new ObservationAdapter(observationList, this);
 
         rvObservations.setLayoutManager(new LinearLayoutManager(this));
         rvObservations.setAdapter(observationAdapter);
     }
 
-    /**
-     * Gán sự kiện click cho nút "+".
-     */
+
     private void setupClickListeners() {
         fabAddObservation.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // Mở màn hình AddObservationActivity
+
                 Intent intent = new Intent(HikeDetailActivity.this, AddObservationActivity.class);
 
-                // Gửi ID của chuyến đi (HIKE_ID) sang
-                // để màn hình mới biết nó đang thêm quan sát cho ai.
                 intent.putExtra("HIKE_ID", hikeId);
 
                 startActivity(intent);
@@ -130,9 +115,7 @@ public class HikeDetailActivity extends AppCompatActivity implements Observation
         });
     }
 
-    /**
-     * Lấy dữ liệu của Hike từ DB và "bơm" vào các TextView.
-     */
+
     private void loadHikeData() {
         currentHike = dbHelper.getHikeById(hikeId);
 
@@ -152,27 +135,24 @@ public class HikeDetailActivity extends AppCompatActivity implements Observation
         }
     }
 
-    /**
-     * Lấy danh sách Observations từ DB và cập nhật RecyclerView.
-     */
+
     private void loadObservations() {
         observationList.clear();
         observationList.addAll(dbHelper.getAllObservationsForHike(hikeId));
         observationAdapter.notifyDataSetChanged();
     }
 
-    // --- Xử lý sự kiện click từ ObservationAdapter ---
 
     @Override
     public void onEditObsClick(Observation observation) {
-        // TẠM THỜI:
+
         Toast.makeText(this, "Editing observation: " + observation.getObservation(), Toast.LENGTH_SHORT).show();
-        // (Sẽ làm màn hình EditObservationActivity sau)
+
     }
 
     @Override
     public void onDeleteObsClick(Observation observation) {
-        // Hiển thị hộp thoại xác nhận
+
         new AlertDialog.Builder(this)
                 .setTitle("Delete Observation")
                 .setMessage("Are you sure you want to delete this observation?")
@@ -180,7 +160,7 @@ public class HikeDetailActivity extends AppCompatActivity implements Observation
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         dbHelper.deleteObservation(observation.getId());
-                        loadObservations(); // Tải lại danh sách quan sát
+                        loadObservations();
                         Toast.makeText(HikeDetailActivity.this, "Observation deleted", Toast.LENGTH_SHORT).show();
                     }
                 })

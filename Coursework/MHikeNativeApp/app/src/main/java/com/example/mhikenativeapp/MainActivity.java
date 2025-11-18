@@ -1,9 +1,9 @@
-package com.example.mhikenativeapp; // Thay bằng package của bạn
+package com.example.mhikenativeapp;
 
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.app.DatePickerDialog;
-import android.content.Intent; // Đảm bảo đã import
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ArrayAdapter;
@@ -22,14 +22,14 @@ import java.util.Calendar;
 
 public class MainActivity extends AppCompatActivity {
 
-    // Khai báo tất cả các View
+
     private TextInputEditText etHikeName, etHikeLocation, etHikeDate, etHikeLength, etHikeDescription, etWeather, etTrailCondition;
     private RadioGroup rgParking;
     private Spinner spinnerDifficulty;
 
-    // Khai báo 2 nút
+
     private Button btnSaveHike;
-    private Button btnViewAllHikes; // NÚT QUAN TRỌNG
+    private Button btnViewAllHikes;
 
     private DatabaseHelper dbHelper;
 
@@ -45,24 +45,24 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void setupUI() {
-        // Ánh xạ tất cả EditText
+
         etHikeName = findViewById(R.id.etHikeName);
         etHikeLocation = findViewById(R.id.etHikeLocation);
         etHikeDate = findViewById(R.id.etHikeDate);
         etHikeLength = findViewById(R.id.etHikeLength);
         etHikeDescription = findViewById(R.id.etHikeDescription);
 
-        // Ánh xạ 2 trường mới (BẠN PHẢI THÊM VÀO XML)
+
         etWeather = findViewById(R.id.etWeather);
         etTrailCondition = findViewById(R.id.etTrailCondition);
 
-        // Ánh xạ các control khác
+
         rgParking = findViewById(R.id.rgParking);
         spinnerDifficulty = findViewById(R.id.spinnerDifficulty);
 
-        // Ánh xạ 2 nút
+
         btnSaveHike = findViewById(R.id.btnSaveHike);
-        btnViewAllHikes = findViewById(R.id.btnViewAllHikes); // HÃY CHẮC LÀ BẠN CÓ NÚT NÀY
+        btnViewAllHikes = findViewById(R.id.btnViewAllHikes);
     }
 
     private void setupSpinner() {
@@ -76,7 +76,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void setupClickListeners() {
-        // Sự kiện click cho nút Save
+
         btnSaveHike.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -84,7 +84,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        // Sự kiện click cho nút View All
+
         btnViewAllHikes.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -93,7 +93,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        // Sự kiện click cho ô Ngày (để hiển thị lịch)
+
         etHikeDate.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

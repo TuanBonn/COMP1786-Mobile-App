@@ -1,4 +1,4 @@
-package com.example.mhikenativeapp.helpers; // Thay bằng package của bạn
+package com.example.mhikenativeapp.helpers;
 
 import android.content.ContentValues;
 import android.content.Context;
@@ -13,11 +13,9 @@ import java.util.ArrayList;
 
 public class DatabaseHelper extends SQLiteOpenHelper {
 
-    // Thông tin Database
     private static final String DATABASE_NAME = "MHike.db";
     private static final int DATABASE_VERSION = 1;
 
-    // --- Bảng 1: HIKES (Chuyến đi) ---
     private static final String TABLE_HIKES = "hikes";
     private static final String COLUMN_HIKE_ID = "hike_id";
     private static final String COLUMN_HIKE_NAME = "name";
@@ -30,7 +28,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     private static final String COLUMN_HIKE_WEATHER = "weather";
     private static final String COLUMN_HIKE_TRAIL_CONDITION = "trail_condition";
 
-    // --- Bảng 2: OBSERVATIONS (Quan sát) ---
     private static final String TABLE_OBSERVATIONS = "observations";
     private static final String COLUMN_OBS_ID = "obs_id";
     private static final String COLUMN_OBS_TEXT = "observation_text";
@@ -39,7 +36,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     private static final String COLUMN_OBS_HIKE_ID_FK = "hike_id";
 
 
-    // Câu lệnh SQL tạo Bảng Hikes
     private static final String CREATE_TABLE_HIKES = "CREATE TABLE " + TABLE_HIKES + "("
             + COLUMN_HIKE_ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
             + COLUMN_HIKE_NAME + " TEXT NOT NULL,"
@@ -53,7 +49,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             + COLUMN_HIKE_TRAIL_CONDITION + " TEXT"
             + ")";
 
-    // Câu lệnh SQL tạo Bảng Observations
     private static final String CREATE_TABLE_OBSERVATIONS = "CREATE TABLE " + TABLE_OBSERVATIONS + "("
             + COLUMN_OBS_ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
             + COLUMN_OBS_TEXT + " TEXT NOT NULL,"
@@ -80,7 +75,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         onCreate(db);
     }
 
-    // --- CRUD Operations cho HIKES ---
 
     public long addHike(Hike hike) {
         SQLiteDatabase db = this.getWritableDatabase();
@@ -101,11 +95,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return id;
     }
 
-    /**
-     * SỬA LỖI NẰM Ở ĐÂY
-     * Lấy tất cả các Hikes từ database.
-     * @return Một ArrayList chứa tất cả đối tượng Hike.
-     */
+
     public ArrayList<Hike> getAllHikes() {
         ArrayList<Hike> hikeList = new ArrayList<>();
         String selectQuery = "SELECT * FROM " + TABLE_HIKES + " ORDER BY " + COLUMN_HIKE_NAME + " ASC";
@@ -115,7 +105,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
         if (cursor.moveToFirst()) {
             do {
-                // SỬA LỖI: 'Hike hike' và 'hikeList.add(hike)' PHẢI ở BÊN TRONG vòng lặp.
                 Hike hike = new Hike();
                 hike.setId(cursor.getLong(cursor.getColumnIndexOrThrow(COLUMN_HIKE_ID)));
                 hike.setName(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_HIKE_NAME)));
@@ -128,13 +117,13 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 hike.setWeather(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_HIKE_WEATHER)));
                 hike.setTrailCondition(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_HIKE_TRAIL_CONDITION)));
 
-                hikeList.add(hike); // Thêm đối tượng MỚI vào danh sách
+                hikeList.add(hike);
 
             } while (cursor.moveToNext());
         }
         cursor.close();
         db.close();
-        return hikeList; // Trả về danh sách ĐẦY ĐỦ
+        return hikeList;
     }
 
     public ArrayList<Hike> searchHikes(String query) {
@@ -142,19 +131,18 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor cursor = null;
 
-        // Dùng query() an toàn với mệnh đề LIKE [cite: 1888]
-        String selection = COLUMN_HIKE_NAME + " LIKE ?"; // Tìm cột 'name' GIỐNG VỚI ?
-        String[] selectionArgs = new String[]{"%" + query + "%"}; // %query% = "chứa" query
+        String selection = COLUMN_HIKE_NAME + " LIKE ?";
+        String[] selectionArgs = new String[]{"%" + query + "%"};
 
         try {
             cursor = db.query(
                     TABLE_HIKES,
-                    null, // columns (null = all)
-                    selection, // selection (WHERE clause)
-                    selectionArgs, // selectionArgs (thay thế ?)
-                    null, // groupBy
-                    null, // having
-                    COLUMN_HIKE_NAME + " ASC"  // orderBy
+                    null,
+                    selection,
+                    selectionArgs,
+                    null,
+                    null,
+                    COLUMN_HIKE_NAME + " ASC"
             );
 
             if (cursor.moveToFirst()) {
@@ -185,29 +173,24 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return hikeList;
     }
 
-    /**
-     * Lấy MỘT (1) Hike từ database bằng ID của nó.
-     * Cần thiết cho màn hình EditHikeActivity.
-     */
+
     public Hike getHikeById(long id) {
         SQLiteDatabase db = this.getReadableDatabase();
         Hike hike = null;
-        Cursor cursor = null; // Khai báo ở đây để đóng trong finally
+        Cursor cursor = null;
 
         try {
-            // Dùng query() an toàn
             cursor = db.query(
                     TABLE_HIKES,
-                    null, // columns (null = all)
-                    COLUMN_HIKE_ID + " = ?", // selection (WHERE clause)
-                    new String[]{String.valueOf(id)}, // selectionArgs (thay thế ?)
-                    null, // groupBy
-                    null, // having
-                    null  // orderBy
+                    null,
+                    COLUMN_HIKE_ID + " = ?",
+                    new String[]{String.valueOf(id)},
+                    null,
+                    null,
+                    null
             );
 
             if (cursor != null && cursor.moveToFirst()) {
-                // Khởi tạo đối tượng Hike
                 hike = new Hike();
                 hike.setId(cursor.getLong(cursor.getColumnIndexOrThrow(COLUMN_HIKE_ID)));
                 hike.setName(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_HIKE_NAME)));
@@ -221,7 +204,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 hike.setTrailCondition(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_HIKE_TRAIL_CONDITION)));
             }
         } catch (Exception e) {
-            // Xử lý lỗi (ví dụ: log lỗi)
             e.printStackTrace();
         } finally {
             if (cursor != null) {
@@ -230,7 +212,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             db.close();
         }
 
-        return hike; // Trả về 1 Hike (hoặc null nếu không tìm thấy)
+        return hike;
     }
 
     public int updateHike(Hike hike) {
@@ -268,7 +250,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         db.close();
     }
 
-    // --- CRUD Operations cho OBSERVATIONS ---
 
     public long addObservation(Observation observation) {
         SQLiteDatabase db = this.getWritableDatabase();
