@@ -139,7 +139,7 @@ public class AddHikeActivity extends AppCompatActivity {
 
     private void saveHike() {
         if (!validateInput()) {
-            Toast.makeText(this, "Please fix the errors", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Please fill in all information", Toast.LENGTH_SHORT).show();
             return;
         }
 

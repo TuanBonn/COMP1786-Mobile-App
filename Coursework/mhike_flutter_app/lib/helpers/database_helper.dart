@@ -111,4 +111,15 @@ class DatabaseHelper {
     Database db = await database;
     await db.delete('observations', where: 'id = ?', whereArgs: [id]);
   }
+
+  Future<int> updateObservation(Observation observation) async {
+    Database db = await database;
+    return await db.update(
+      'observations',
+      observation.toMap(),
+      where: 'id = ?',
+      whereArgs: [observation.id],
+    );
+  }
+
 }

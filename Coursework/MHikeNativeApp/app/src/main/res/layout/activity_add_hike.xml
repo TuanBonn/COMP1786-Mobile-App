@@ -99,7 +99,7 @@
                 android:id="@+id/etHikeLength"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Length the hike"
+                android:hint="Length the hike (Km)"
                 android:inputType="numberDecimal" />
         </com.google.android.material.textfield.TextInputLayout>
 

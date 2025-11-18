@@ -107,11 +107,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                 child: ListTile(
                   contentPadding: const EdgeInsets.all(10),
-                  leading: CircleAvatar(
-                    radius: 25,
-                    backgroundColor: Colors.indigo.shade100,
-                    child: const Icon(Icons.landscape, color: Colors.indigo),
-                  ),
                   title: Text(hike.name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
                   subtitle: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,

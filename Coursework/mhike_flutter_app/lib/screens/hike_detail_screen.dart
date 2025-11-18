@@ -27,11 +27,35 @@ class _HikeDetailScreenState extends State<HikeDetailScreen> {
     });
   }
 
-  void _deleteObservation(int id) async {
-    await DatabaseHelper().deleteObservation(id);
-    _refreshObsList();
-  }
 
+  void _confirmDeleteObservation(int id) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Delete Observation'),
+        content: const Text('Are you sure you want to delete this observation?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () async {
+              await DatabaseHelper().deleteObservation(id);
+              if (mounted) Navigator.pop(ctx);
+              _refreshObsList();
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Observation deleted')),
+                );
+              }
+            },
+            child: const Text('Delete', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+  }
 
   Widget _buildInfoRow(IconData icon, String label, String value) {
     return Padding(
@@ -100,9 +124,30 @@ class _HikeDetailScreenState extends State<HikeDetailScreen> {
                         title: Text(obs.observation, style: const TextStyle(fontWeight: FontWeight.bold)),
                         subtitle: Text('${obs.time}\n${obs.comments}'),
                         isThreeLine: true,
-                        trailing: IconButton(
-                          icon: const Icon(Icons.delete, color: Colors.red),
-                          onPressed: () => _deleteObservation(obs.id!),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            IconButton(
+                              icon: const Icon(Icons.edit, color: Colors.blue),
+                              onPressed: () async {
+
+                                final result = await Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => AddObservationScreen(
+                                      hikeId: widget.hike.id!,
+                                      observation: obs,
+                                    ),
+                                  ),
+                                );
+                                if (result == true) _refreshObsList();
+                              },
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.delete, color: Colors.red),
+                              onPressed: () => _confirmDeleteObservation(obs.id!),
+                            ),
+                          ],
                         ),
                       ),
                     );
